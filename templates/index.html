@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HaMov</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{% static 'style.css' %}" >
+</head>
+<body class="bg-gray-100 p-4">
+    <form action="{% url 'search' %}" method="post">
+        <div class="max-w-md mx-auto bg-white p-4 rounded-md shadow-md search">
+            {% csrf_token %}
+            <input type="text" name="data" placeholder="Buscar..." class="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:ring-blue-500">
+            <button type="submit" id="searchBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md ml-2">Buscar</button>
+        </div>
+    </form>
+    <div style="padding: 2%;">
+        <div class="pictures">
+            {% for key, value in search %}
+            <div style="text-align: center;">
+                <img style="width: 80%; height: 60%; margin-left: 10%; border-radius: 3rem;" src="{{ value.poster }}" alt="{{ value.name }}" 
+                    onmouseover="this.nextElementSibling.style.visibility='visible'" 
+                    onmouseout="this.nextElementSibling.style.visibility='hidden'">
+                <span style="visibility: hidden; width: 120px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s;">
+                    {{ value.title }}
+                </span>
+                <div class="item" data-id="{{ key }}">
+                    <button class="px-4 py-2 rounded-md ml-2" style="background-color: rgb(11, 211, 11); border-bottom-left-radius: 2rem; border-top-left-radius: 2rem;" onclick=good("{{ key }}")><i class="bx bx-like"></i></button>
+                    <button class="px-4 py-2 rounded-md ml-2" style="background-color: red; border-bottom-right-radius: 2rem; border-top-right-radius: 2rem;" onclick=bad("{{ key }}")><i class="bx bx-dislike"></i></button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="pictures">
+            {% for key, value in init %}
+            <div style="text-align: center;">
+                <img style="width: 80%; height: 60%; margin-left: 10%; border-radius: 3rem;" src="{{ value.poster }}" alt="{{ value.name }}" 
+                    onmouseover="this.nextElementSibling.style.visibility='visible'" 
+                    onmouseout="this.nextElementSibling.style.visibility='hidden'">
+                <span style="visibility: hidden; width: 120px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s;">
+                    {{ value.title }}
+                </span>
+                <div class="item" data-id="{{ key }}">
+                    <button class="px-4 py-2 rounded-md ml-2" style="background-color: rgb(11, 211, 11); border-bottom-left-radius: 2rem; border-top-left-radius: 2rem;" onclick=good("{{ key }}")><i class="bx bx-like"></i></button>
+                    <button class="px-4 py-2 rounded-md ml-2" style="background-color: red; border-bottom-right-radius: 2rem; border-top-right-radius: 2rem;" onclick=bad("{{ key }}")><i class="bx bx-dislike"></i></button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="pictures">
+            {% for key, value in recommended %}
+            <div style="text-align: center; position: relative; display: inline-block;">
+                <img style="width: 80%; height: 60%; margin-left: 10%; border-radius: 3rem;" src="{{ value.poster }}" alt="{{ value.name }}" 
+                    onmouseover="this.nextElementSibling.style.visibility='visible'" 
+                    onmouseout="this.nextElementSibling.style.visibility='hidden'">
+                <span style="visibility: hidden; width: 120px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s;">
+                    {{ value.title }}
+                </span>
+                <div class="item" data-id="{{ key }}">
+                    <button class="px-4 py-2 rounded-md ml-2" style="background-color: rgb(11, 211, 11); border-bottom-left-radius: 2rem; border-top-left-radius: 2rem;" onclick=good("{{ key }}")><i class="bx bx-like"></i></button>
+                    <button class="px-4 py-2 rounded-md ml-2" style="background-color: red; border-bottom-right-radius: 2rem; border-top-right-radius: 2rem;" onclick=bad("{{ key }}")><i class="bx bx-dislike"></i></button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <form action="{% url 'recomm' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" id="resultArray" value="" name="data">
+            <button style="margin-left: 47%;" id="submitBtn" type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md ml-2">Enviar</button>
+    </form>
+    <script src="{% static 'script.js' %}"></script>
+</body>
+</html>
