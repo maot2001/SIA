@@ -1,5 +1,7 @@
 from openai import OpenAI
 from .utils import cort
+#from utils import cort
+from time import time
 
 seps = ['"', '```\n']
 
@@ -35,8 +37,8 @@ creators3 = ' { "question": { "Maze Runner: The Death Cure": [ "T.S. Nowlin", "J
 creators4 = ' { "question": { "Heat": [ "Michael Mann" ], "Casino": [ "Nicholas Pileggi", "Martin Scorsese" ], "City Hall": [ "Ken Lipper", "Paul Schrader", "Nicholas Pileggi" ], "The Insider": [ "Michael Mann" ] }, '
 
 def ai(text, temp=0):
-    """To make the request to LM-Studio with the user's tastes.
-    """
+    now = time()
+
     client = OpenAI(base_url="http://localhost:1234/v1", api_key="not-needed")
 
     completion = client.chat.completions.create(
@@ -61,13 +63,15 @@ def ai(text, temp=0):
         if chunk.choices[0].delta.content:
             response += chunk.choices[0].delta.content
     
+    print(int(time() - now))
+
     return response
 
 def call_ai(text, question):
-    """Pass the information to the ai function, then perform the first check and parse
-    """
     text += question
+    print(text)
     response = ai(text)
+    print(response)
     response = response.split(',')
     result = []
     for e in response:
@@ -89,8 +93,6 @@ def call_ai(text, question):
     return result
 
 def include(movies, data, word):
-    """Forms the particular case of the user's tastes
-    """
     question = ' { "question": {'
     not_desc = True
     for m in movies:
@@ -107,8 +109,6 @@ def include(movies, data, word):
     return question
 
 def include2(movies, data, word):
-    """Forms the particular case of the user's tastes
-    """
     question = ' { "question": {'
     not_desc = True
     for m in movies:
@@ -129,8 +129,6 @@ def include2(movies, data, word):
     return question
 
 def actors(movies, data, feel):
-    """Example formation of actors
-    """
     answer1 = '"answer": "I ' + feel + ' Tom Hanks movies" }, \n'
     answer2 = '"answer": "I ' + feel + ' Jim Carrey movies" }, \n'
     answer3 = '"answer": "I do not have a sentence about the actors of movies" }, \n'
@@ -142,8 +140,6 @@ def actors(movies, data, feel):
     return call_ai(text, question)
 
 def directors(movies, data, feel):
-    """Example formation of directors
-    """
     answer1 = '"answer": "I ' + feel + ' Martin Scorsese movies" }, \n'
     answer2 = '"answer": "I ' + feel + ' Steven Spielberg movies" }, \n'
     answer3 = '"answer": "I do not have a sentence about the directors of movies" }, \n'
@@ -155,8 +151,6 @@ def directors(movies, data, feel):
     return call_ai(text, question)
 
 def creators(movies, data, feel):
-    """Example formation of creators
-    """
     answer1 = '"answer": "I ' + feel + ' Mark Steven Johnson movies" }, \n'
     answer2 = '"answer": "I ' + feel + ' Peter M. Lenkov movies" }, \n'
     answer3 = '"answer": "I do not have a sentence about the creators of movies" }, \n'
@@ -168,8 +162,6 @@ def creators(movies, data, feel):
     return call_ai(text, question)
 
 def descriptions(movies, data, feel):
-    """Example formation of descriptions
-    """
     answer1 = '"answer": "I ' + feel + ' romance movies" }, \n'
     answer2 = '"answer": "I ' + feel + ' action movies" }, \n'
     answer3 = '"answer": "I do not have a sentence about the genre of movies" }, \n'
@@ -181,8 +173,6 @@ def descriptions(movies, data, feel):
     return call_ai(text, question)
 
 def keywords(movies, data, feel):
-    """Example formation of keywords
-    """
     answer1 = '"answer": "I ' + feel + ' romance movies" }, \n'
     answer2 = '"answer": "I ' + feel + ' monsters movies" }, \n'
     answer3 = '"answer": "I do not have a sentence about the genre of movies" }, \n'

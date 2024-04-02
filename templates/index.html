@@ -38,7 +38,7 @@
         <div class="pictures">
             {% for key, value in init %}
             <div style="text-align: center;">
-                <img style="width: 80%; height: 60%; margin-left: 10%; border-radius: 3rem;" src="{{ value.poster }}" alt="{{ value.name }}" 
+                <img class="imagen" id="{{ key }}" style="width: 80%; height: 60%; margin-left: 10%; border-radius: 3rem;" src="{{ value.poster }}" alt="{{ value.name }}" 
                     onmouseover="this.nextElementSibling.style.visibility='visible'" 
                     onmouseout="this.nextElementSibling.style.visibility='hidden'">
                 <span style="visibility: hidden; width: 120px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s;">
@@ -74,5 +74,6 @@
             <button style="margin-left: 47%;" id="submitBtn" type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md ml-2">Enviar</button>
     </form>
     <script src="{% static 'script.js' %}"></script>
+    <script src="{% static 'interaction.js' %}"></script>
 </body>
 </html>

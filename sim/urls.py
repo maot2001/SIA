@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.start, name='start'),
     path('search/', views.search, name='search'),
-    path('recomm/', views.recomm, name='recomm')
+    path('recomm/', views.recomm, name='recomm'),
+    path('guardar_duracion/', views.guardar_duracion, name='guardar_duracion')
 ]

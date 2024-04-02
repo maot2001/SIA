@@ -2,10 +2,12 @@ import os
 import json
 from threading import Thread
 from django.shortcuts import render
-from .utils import json_to_movies, first, json_to_data, take_movies
+from django.http import JsonResponse
+from .utils import json_to_movies, first_10, json_to_data, take_movies
 from .agents import Agent
 from time import sleep
 from .recommend import recommend
+#from utils import json_to_movies, first_10, json_to_data, take_movies
 
 ratings = {}
 movies = {}
@@ -15,12 +17,6 @@ last_recommend = []
 users = []
 
 def json_to_ratings():
-    """Load the user ratings json.
-
-    Returns:
-        dict: id_user (int): { name: str, 
-                               ratings: dict( id_movie (int): 1 (if like) or 0 (if dislike) ) }
-    """
     global ratings
     route = os.getcwd()
     route = os.path.join(route, 'data')
@@ -39,11 +35,6 @@ def json_to_ratings():
     return ratings
    
 def json_to_genome():
-    """Subgenre relationship load with each movie.
-
-    Returns:
-        dict: id_movie (int): list(float) (the tag of every position is in tags.json file in the same position)
-    """
     global genome
     route = os.getcwd()
     route = os.path.join(route, 'data')
@@ -58,41 +49,22 @@ def json_to_genome():
     return genome
    
 def start(request):
-    """It is responsible for loading the databases and returning a home page with different randomly selected movies.
-
-    Args:
-        request (): Initial request when connecting to the server.
-
-    Returns:
-        HttpResponse: Home Page.
-    """
-    print(type(request))
-    # Loading database
     global movies
     movies = json_to_movies()
+
     thread1 = Thread(target=json_to_ratings)
     thread2 = Thread(target=json_to_genome)
     thread1.start()
     thread2.start()
 
-    # Movie selection
-    init = first(movies)
+    init = first_10(movies)
     context = { 'init': init.items() }
     return render(request, 'index.html', context)
 
 def search(request):
-    """Movie search engine linked to the website search bar.
-
-    Args:
-        request (): In the data element you will find the search performed by the user.
-
-    Returns:
-        HttpResponse: List of found movies, particular interface of a single movie or Not Found.
-    """
     data = request.POST.get('data')
     result = {}
 
-    # Search
     for m in movies:
         if data in movies[m]['name'].lower():
             result[m] = movies[m]
@@ -100,46 +72,87 @@ def search(request):
     context = { 'search': result.items() }
     return render(request, 'index.html', context)    
 
-def create_agent(data: dict):
-    """Creation and interaction of the user reaction simulator agent.
-
-    Args:
-        data (dict: id_movie (int): 1 (if like) or 0 (if dislike)): User rating of movies obtained on the website.
-    """
+def create_agent(data):
     global agent, last_recommend, users
     
-    # Wait for subgenre database
     while len(genome) == 0: sleep(1)
 
     agent = Agent(data, genome, movies)
 
-    # Wait for the system recommendation
     while len(last_recommend) == 0: sleep(1)
 
-    # Simulation
     for i in range(4):
         mov = take_movies(agent.perceive(last_recommend, genome, movies, users), movies)
+        for m in mov:
+            print(mov[m]['name'])
         last_recommend, users = recommend(agent.val, ratings)
- 
+
+    for e in agent.likes:
+        print(e['name'])
+        print("----------------------------------------------------------------------------")
+    print()
+
+    for e in agent.dislikes:
+        print(e['name'])
+        print("----------------------------------------------------------------------------")
+    print()
+
+    for e in agent.believes.likes:
+        print(e[0])
+    print()
+
+    for e in agent.believes.dislikes:
+        print(e[0])
+    print()
+
+    for e in agent.believes.text:
+        print(e)
+    print()
+          
 def recomm(request):
-    """Recommendation system that uses the Jaccard distance.
-
-    Args:
-        request (): In the data element there are user ratings of movies found on the website.
-
-    Returns:
-        HttpResponse: List with 10 recommendations or less selected based on opinions of the closest users.
-    """
     global agent, last_recommend, users
     data = request.POST.get('data')
     data = json_to_data(data)
 
-    # Agent running in the background
     agent_maker = Thread(target=create_agent, args=(data,))
     agent_maker.start()
 
-    # Recommendation system
     last_recommend, users = recommend(data, ratings)
     rec = take_movies(last_recommend, movies)
     context = { 'recommended': rec.items() }
     return render(request, 'index.html', context)  
+
+def guardar_duracion(request):
+    print('init')
+    if request.method == 'POST':
+        print('post')
+        data = json.loads(request.body)
+        duration = data.get('duration')
+        print(duration)
+        
+        # Aquí puedes guardar la duración en la base de datos o realizar otras acciones
+        # Ejemplo de guardado en la base de datos:
+        # TuModeloDuracion.objects.create(duration=duration)
+        
+        return JsonResponse({'message': 'Duración guardada correctamente'})
+    else:
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+"""
+def process_data(request):
+    print('in_process_data')
+    data = request.POST.get('search')  # Obtener la información del frontend
+    print(data)
+    data = 'data'  # Obtener la información del frontend
+
+    # Iniciar un hilo para procesar la información en segundo plano
+    thread = Thread(target=process_data_in_background, args=(data,))
+    thread.start()
+
+    print('pass_thread')
+    return JsonResponse({'message': 'Data processing started'})
+
+def process_data_in_background(data):
+    print('in_thread')
+    channel_layer = lay.get_channel_layer()
+    async_to_sync(channel_layer.group_send)('custom_channel', {'type': 'send_message', 'message': data})
+"""
