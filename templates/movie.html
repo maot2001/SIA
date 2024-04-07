@@ -1,0 +1,106 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ data.name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'style.css' %}" >
+</head>
+<body class="bg-white text-black">
+
+    <header class="bg-blue-500 p-4">
+        <h1 class="text-white text-center text-2xl font-bold">{{ data.name }}</h1>
+    </header>
+
+    <main class="container mx-auto p-8">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <img src="{{ data.poster }}" alt="{{ data.name }}" class="w-full h-auto rounded-lg"> 
+            </div>
+            <div class="info">
+
+                <div>
+                    {% for g in data.genre %}
+                        <p class="text-xl font-bold mb-4 genres">{{ g }}</p>
+                    {% endfor %}
+                </div>
+
+                {% if data.description %}
+                    <div>
+                        <h2 class="text-xl font-bold mb-4">Description</h2>
+                        <p>
+                            {{ data.description }}
+                        </p>
+                    </div>
+                {% endif %}
+
+                <div class="h2-info-container">
+                    <h2 class="text-xl font-bold">Date</h2>
+                    <p class="text-xl">
+                        {{ data.datePublished }}
+                    </p>
+                </div>
+
+                <div class="h2-info-container">
+                    <h2 class="text-xl font-bold">Duration</h2>
+                    <p class="text-xl">
+                        {{ data.duration }}
+                    </p>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-bold mb-4">Tematics</h2>
+                    <p>
+                        {{ data.keywords }}
+                    </p>
+                </div>
+
+                <div class="people">
+                    <div>
+                        <h3 class="text-lg font-bold mt-4 mb-2">Actors</h3>
+                        <ul>
+                            {% for act in data.actor %}
+                                <li>{{ act.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-bold mt-4 mb-2">Directors</h3>
+                        <ul>
+                            {% for act in data.director %}
+                                <li>{{ act.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+    
+                    <div>
+                        <h3 class="text-lg font-bold mt-4 mb-2">Creators</h3>
+                        <ul>
+                            {% for act in data.creator %}
+                                <li>{{ act.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                {% if data.review.reviewBody %}
+                    <div>
+                        <h2 class="text-xl font-bold mb-4">Comments</h2>
+                        <p>
+                            {{ data.review.reviewBody }}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        </main>
+
+    <script src="{% static 'time_page.js' %}"></script>
+
+</body>
+</html>

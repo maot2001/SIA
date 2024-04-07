@@ -8,6 +8,7 @@
     <title>HaMov</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'style.css' %}" >
 </head>
 <body class="bg-gray-100 p-4">
@@ -22,29 +23,21 @@
         <div class="pictures">
             {% for key, value in search %}
             <div style="text-align: center;">
-                <img style="width: 80%; height: 60%; margin-left: 10%; border-radius: 3rem;" src="{{ value.poster }}" alt="{{ value.name }}" 
-                    onmouseover="this.nextElementSibling.style.visibility='visible'" 
-                    onmouseout="this.nextElementSibling.style.visibility='hidden'">
-                <span style="visibility: hidden; width: 120px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s;">
-                    {{ value.title }}
-                </span>
-                <div class="item" data-id="{{ key }}">
+                <img id="{{ key }}" data-name="{{ value.name }}" data-description="{{ value.description }}" src="{{ value.poster }}" alt="{{ value.name }}" class="image relative tooltip-custom" data-toggle="tooltip">
+
+                <div class="item">
                     <button class="px-4 py-2 rounded-md ml-2" style="background-color: rgb(11, 211, 11); border-bottom-left-radius: 2rem; border-top-left-radius: 2rem;" onclick=good("{{ key }}")><i class="bx bx-like"></i></button>
                     <button class="px-4 py-2 rounded-md ml-2" style="background-color: red; border-bottom-right-radius: 2rem; border-top-right-radius: 2rem;" onclick=bad("{{ key }}")><i class="bx bx-dislike"></i></button>
                 </div>
             </div>
             {% endfor %}
         </div>
-        <div class="pictures">
+        <div class="pictures position-relative">
             {% for key, value in init %}
             <div style="text-align: center;">
-                <img class="imagen" id="{{ key }}" style="width: 80%; height: 60%; margin-left: 10%; border-radius: 3rem;" src="{{ value.poster }}" alt="{{ value.name }}" 
-                    onmouseover="this.nextElementSibling.style.visibility='visible'" 
-                    onmouseout="this.nextElementSibling.style.visibility='hidden'">
-                <span style="visibility: hidden; width: 120px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s;">
-                    {{ value.title }}
-                </span>
-                <div class="item" data-id="{{ key }}">
+                <img id="{{ key }}" data-name="{{ value.name }}" data-description="{{ value.description }}" src="{{ value.poster }}" alt="{{ value.name }}" class="image relative tooltip-custom" data-toggle="tooltip">
+
+                <div class="item">
                     <button class="px-4 py-2 rounded-md ml-2" style="background-color: rgb(11, 211, 11); border-bottom-left-radius: 2rem; border-top-left-radius: 2rem;" onclick=good("{{ key }}")><i class="bx bx-like"></i></button>
                     <button class="px-4 py-2 rounded-md ml-2" style="background-color: red; border-bottom-right-radius: 2rem; border-top-right-radius: 2rem;" onclick=bad("{{ key }}")><i class="bx bx-dislike"></i></button>
                 </div>
@@ -53,14 +46,10 @@
         </div>
         <div class="pictures">
             {% for key, value in recommended %}
-            <div style="text-align: center; position: relative; display: inline-block;">
-                <img style="width: 80%; height: 60%; margin-left: 10%; border-radius: 3rem;" src="{{ value.poster }}" alt="{{ value.name }}" 
-                    onmouseover="this.nextElementSibling.style.visibility='visible'" 
-                    onmouseout="this.nextElementSibling.style.visibility='hidden'">
-                <span style="visibility: hidden; width: 120px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s;">
-                    {{ value.title }}
-                </span>
-                <div class="item" data-id="{{ key }}">
+            <div style="text-align: center;">
+                <img id="{{ key }}" data-name="{{ value.name }}" data-description="{{ value.description }}" src="{{ value.poster }}" alt="{{ value.name }}" class="image relative tooltip-custom" data-toggle="tooltip">
+
+                <div class="item">
                     <button class="px-4 py-2 rounded-md ml-2" style="background-color: rgb(11, 211, 11); border-bottom-left-radius: 2rem; border-top-left-radius: 2rem;" onclick=good("{{ key }}")><i class="bx bx-like"></i></button>
                     <button class="px-4 py-2 rounded-md ml-2" style="background-color: red; border-bottom-right-radius: 2rem; border-top-right-radius: 2rem;" onclick=bad("{{ key }}")><i class="bx bx-dislike"></i></button>
                 </div>
@@ -74,6 +63,15 @@
             <button style="margin-left: 47%;" id="submitBtn" type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md ml-2">Enviar</button>
     </form>
     <script src="{% static 'script.js' %}"></script>
-    <script src="{% static 'interaction.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.6/dist/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+  
+  
+    <script>
+      $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+      })
+    </script>
 </body>
 </html>

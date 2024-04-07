@@ -5,13 +5,15 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from .utils import json_to_movies, first_10, json_to_data, take_movies
 from .agents import Agent
-from time import sleep
+from time import sleep, time
 from .recommend import recommend
-#from utils import json_to_movies, first_10, json_to_data, take_movies
 
 ratings = {}
 movies = {}
 genome = {}
+time_mouse = {}
+time_page = {}
+searched = []
 agent = 0
 last_recommend = []
 users = []
@@ -62,11 +64,13 @@ def start(request):
     return render(request, 'index.html', context)
 
 def search(request):
+    global searched
     data = request.POST.get('data')
     result = {}
 
     for m in movies:
         if data in movies[m]['name'].lower():
+            searched.append(int(m))
             result[m] = movies[m]
 
     context = { 'search': result.items() }
@@ -122,37 +126,46 @@ def recomm(request):
     context = { 'recommended': rec.items() }
     return render(request, 'index.html', context)  
 
-def guardar_duracion(request):
-    print('init')
-    if request.method == 'POST':
-        print('post')
-        data = json.loads(request.body)
-        duration = data.get('duration')
-        print(duration)
-        
-        # Aquí puedes guardar la duración en la base de datos o realizar otras acciones
-        # Ejemplo de guardado en la base de datos:
-        # TuModeloDuracion.objects.create(duration=duration)
-        
-        return JsonResponse({'message': 'Duración guardada correctamente'})
-    else:
-        return JsonResponse({'error': 'Método no permitido'}, status=405)
-"""
-def process_data(request):
-    print('in_process_data')
-    data = request.POST.get('search')  # Obtener la información del frontend
-    print(data)
-    data = 'data'  # Obtener la información del frontend
+def movie(request):
+    data = json.loads(request.body)
+    id = data.get('id')
+    new_url = f"http://127.0.0.1:8000/movie/{id}/"
+    return JsonResponse({'new_url': new_url})
 
-    # Iniciar un hilo para procesar la información en segundo plano
-    thread = Thread(target=process_data_in_background, args=(data,))
-    thread.start()
+def movie_id(request, id):
+    mov = movies[int(id)]
+    return render(request, 'movie.html', { 'data': mov })
 
-    print('pass_thread')
-    return JsonResponse({'message': 'Data processing started'})
+def save_duration(request):
+    global time_mouse
+    data = json.loads(request.body)
+    time = data.get('time')
+    id = data.get('id')
 
-def process_data_in_background(data):
-    print('in_thread')
-    channel_layer = lay.get_channel_layer()
-    async_to_sync(channel_layer.group_send)('custom_channel', {'type': 'send_message', 'message': data})
-"""
+    try:
+        time_mouse[id] += time
+    except:
+        time_mouse[id] = time
+
+    return JsonResponse({'status': 'ok'})
+
+def ping(request, id):
+    global time_page
+    now = time()
+    data = json.loads(request.body)
+    id = data.get('id')
+
+    try:
+        length = len(time_page[id])
+        if length % 2 == 0:
+            val = time_page[id][length-1]
+            if now - val > .3:
+                time_page[id].append(now)
+            else:
+                time_page[id][length-1] = now
+        else:
+            time_page[id].append(now)
+    except:
+        time_page[id] = [now]
+
+    return JsonResponse({'status': 'ok'})

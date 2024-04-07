@@ -1,27 +1,16 @@
-"""
-URL configuration for sim project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-from django.contrib import admin
 from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', views.start, name='start'),
     path('search/', views.search, name='search'),
     path('recomm/', views.recomm, name='recomm'),
-    path('guardar_duracion/', views.guardar_duracion, name='guardar_duracion')
+    path('movie/', views.movie, name='movie'),
+    path('search/movie/', views.movie, name='movie'),
+    path('recomm/movie/', views.movie, name='movie'),
+    path('movie/<int:id>/', views.movie_id, name='movie_id'),
+    path('movie/<int:id>/ping/', views.ping, name='ping'),
+    path('save_duration/', views.save_duration, name='save_duration'),
+    path('search/save_duration/', views.save_duration, name='save_duration'),
+    path('recomm/save_duration/', views.save_duration, name='save_duration')
 ]
