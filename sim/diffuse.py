@@ -119,22 +119,38 @@ class DifusseAgent:
         self.likes = [[movies[m] for m in liked if liked[m] == 1]]
         self.dislikes = [[movies[m] for m in liked if liked[m] == 0]]
         self.believes = DifusseBelief(self.likes, self.dislikes)
-        self.recommended = {}
+        self.actor_dict={}
+        self.recommended = []
         self.inference=Fuzz()
 
     def perceive(self, recomended, movies):
         actor_rate=[]
+        likes=[]
         for rec in recomended:
+            actors=[]
             descrip=movies[rec]['description']
             if descrip is not None:
                 descrip_value=self.believes.calc_descrip(descrip,movies)
             actor=movies[rec]['actor']
             if actor is not None:
                 for act in actor:
+                    actors.append(act)
                     actor_rate.append(self.believes.calc_actor(act,movies))
                 actor_value=average(actor_rate)
 
-            self.inference.calc(descrip_value,actor_value,True)
+            like_value=self.inference.calc(descrip_value,actor_value,True)
+            if like_value >= 12:
+                self.believes.liked_descrip.append(descrip)
+                for act in actors:
+                    try:
+                        self.actor_dict[act['name']]+=1
+                        if self.actor_dict[act['name']]==3:
+                            self.believes.liked_actor.append(act['name'])
+                    except:
+                        self.actor_dict[act['name']]=0
+            likes.append((like_value,rec))
+
+
         
 
 
