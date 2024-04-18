@@ -16,6 +16,7 @@ class DifusseBelief(Belief):
         self.dislikes=dislikes
         self.liked_descrip=self._extract_(likes,'description')
         self.liked_actor=self._extract_(likes,'actor')
+        self.liked_director=self._extract_(likes,'director')
         self.chat_descrip=self._descrip()
         self.chat_actors=self._actors()
     
@@ -24,6 +25,9 @@ class DifusseBelief(Belief):
         for movie in movies:
             for m in movie:
                 if wich_extract == 'actor':
+                    for actor in m[wich_extract]:
+                        extract.append(actor['name'])
+                elif wich_extract == 'director':
                     for actor in m[wich_extract]:
                         extract.append(actor['name'])
                 else:
@@ -48,13 +52,25 @@ class DifusseBelief(Belief):
         return (response if response is not None else ConnectionError)
 
 
+    def _directors(self):
+        chat=model.start_chat(history=[])
+        text='I am going to send you several directors in the following format:\n'
+        text+='director: [director1]\n'
+        text+='director: [director2]\n ...\n'
+        text+='and I need you to respond:'
+        text+='How much could I like the \"new_director\" given that you liked the previous ones?\n'
+        text+='new_director: [new director]'
+        response=self._send_(chat,text)
+        print(response.text)
+        return chat
+
     def _descrip(self):
         chat=model.start_chat(history=[])
         text='I am going to send you several descriptions in the following format:\n'
         text+='description: [description1]\n'
         text+='description: [description2]\n ...\n'
         text+='and I need you to respond:'
-        text+='How much do you like the \"new_description\" given that you liked the previous ones?\n'
+        text+='How much could I like the \"new_description\" given that you liked the previous ones?\n'
         text+='new_description: [new description]'
         response=self._send_(chat,text)
         print(response.text)
@@ -66,7 +82,7 @@ class DifusseBelief(Belief):
         text+='actor: [actor1]\n'
         text+='actor: [actor2]\n ...\n'
         text+='and I need you to respond:'
-        text+='How much do you like the \"new_actor\" given that you liked the previous ones?\n'
+        text+='How much could I like the \"new_actor\" given that you liked the previous ones?\n'
         text+='new_actor: [new actor]'
         response=self._send_(chat,text)
         print(response.text)
@@ -110,6 +126,26 @@ class DifusseBelief(Belief):
         splited=re.split(f'[{escaped}]',response.text)
         value=int(splited[1] if len(splited[1])==1 else splited[1][0])  
         return value
+    
+    def calc_director(self,director,movies:dict):
+        print('='*100)
+        chat=self.chat_descrip
+        text=''
+        for m in self.liked_director:
+            text+='director ['
+            text+=m + ']\n'
+        text+='new_director: [' + director['name'] + ']\n'
+        text+=' Only responses of a number between 0 and 10. the number between []'
+        print(text)
+
+        response=self._send_(chat,text)
+
+        print('='*100)
+        print(response.text)
+        escaped=re.escape('[]')
+        splited=re.split(f'[{escaped}]',response.text)
+        value=int(splited[1] if len(splited[1])==1 else splited[1][0])  
+        return value
 
 
 
@@ -120,6 +156,7 @@ class DifusseAgent:
         self.dislikes = [[movies[m] for m in liked if liked[m] == 0]]
         self.believes = DifusseBelief(self.likes, self.dislikes)
         self.actor_dict={}
+        self.director_dict={}
         self.recommended = []
         self.inference=Fuzz()
 
@@ -138,17 +175,38 @@ class DifusseAgent:
                     actor_rate.append(self.believes.calc_actor(act,movies))
                 actor_value=average(actor_rate)
 
-            like_value=self.inference.calc(descrip_value,actor_value,True)
-            if like_value >= 12:
-                self.believes.liked_descrip.append(descrip)
-                for act in actors:
-                    try:
-                        self.actor_dict[act['name']]+=1
-                        if self.actor_dict[act['name']]==3:
-                            self.believes.liked_actor.append(act['name'])
-                    except:
-                        self.actor_dict[act['name']]=0
-            likes.append((like_value,rec))
+            director=movies[rec]['director']
+            director=director[0]
+            if director is not None:
+                director_value=self.believes.calc_director(director,movies)
+
+            like_value=self.inference.calc(5,7,10)
+            self.action(like_value,actors,descrip,director)
+
+    def action(self,like_value,actors,descrip,direct):
+
+        if like_value >= 9 and like_value < 12:
+            self.believes.liked_descrip.append(descrip)
+            for act in actors:
+                try:
+                    self.actor_dict[act['name']]+=1
+                    if self.actor_dict[act['name']]==3:
+                        self.believes.liked_actor.append(act['name'])
+                except:
+                    self.actor_dict[act['name']]=0
+            try:
+                self.director_dict[direct['name']]+=1
+                if self.director_dict[act['name']]==3:
+                    self.believes.liked_director.append(direct['name'])
+            except:
+                self.director_dict[direct['name']]=0
+
+        if like_value >= 12:
+            self.believes.liked_descrip.append(descrip)
+            for act in actors:
+                self.believes.liked_actor.append(act['name'])
+            self.believes.liked_director.append(direct['name'])
+
 
 
         
