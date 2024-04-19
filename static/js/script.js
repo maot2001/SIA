@@ -1,8 +1,13 @@
 resultArray = {}
+commented = {}
 const save = JSON.parse(localStorage.getItem('resultArray'));
+const save2 = JSON.parse(localStorage.getItem('commented'));
 
 if (save != null) {
     resultArray = save
+}
+if (save2 != null) {
+  commented = save2
 }
 desblock()
 
@@ -16,46 +21,11 @@ function desblock() {
 
 document.getElementById('submitBtn').addEventListener('click', function() {
     const hiddenInput = document.getElementById('resultArray');
+    const user_comments = document.getElementById('comments');
     hiddenInput.value = JSON.stringify(resultArray);
+    user_comments.value = JSON.stringify(commented);
     localStorage.removeItem('resultArray');
-});
-
-
-const images = document.querySelectorAll('.image');
-images.forEach(image => {
-    let startTime;
-
-    image.addEventListener('mouseover', function() {
-        startTime = new Date();
-    });
-
-    image.addEventListener('mouseout', function() {
-        if (startTime) {
-            const duration = new Date() - startTime;
-            const imageId = image.id;
-            sendTime(imageId, duration);
-        }
-    });
-
-    image.addEventListener('click', function() {
-      const imageId = image.id;
-      console.log(imageId);
-      sendId(imageId);
-  });
-
-    const movie_name = image.dataset.name;
-    const description = image.dataset.description;
-    let tooltip;
-    if (description != "None") {
-      tooltip = "Name: " + movie_name + "\nDescription: " + description
-    }
-    else {
-      tooltip = "Name: " + movie_name
-    }
-    if (image.hasAttribute("title")) {
-      image.removeAttribute("title")
-    }
-    image.setAttribute("title", tooltip)
+    localStorage.removeItem('commented');
 });
 
 function good(itemId) {
@@ -70,32 +40,20 @@ function bad(itemId) {
     desblock()
 }
 
-function sendTime(imageId, elapsedTime) {
-    let xhr = new XMLHttpRequest();
-    let url = 'save_duration/';
-    
-    xhr.open('POST', url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    
-    let csrftoken = getCookie('csrftoken');
-    xhr.setRequestHeader('X-CSRFToken', csrftoken);
-    
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (!xhr.status === 200) {
-          console.error('Error al enviar tiempo a Django');
-        }
-      }
-    };
-    let data = {
-        id: imageId,
-      time: elapsedTime
-    };
-    
-    xhr.send(JSON.stringify(data));
-  }
+function comment(itemId) {
+  const commentInput = document.getElementById('commentInput' + itemId);
+  const user_comment = commentInput.value;
+  commented[itemId] = user_comment;
+  localStorage.setItem('commented', JSON.stringify(commented));
+  actComment(itemId);
+}
 
-  function sendId(imageId) {
+function actComment(itemId) {
+  const commentForm = document.getElementById('commentForm' + itemId);
+  commentForm.classList.toggle('hidden');
+}
+
+function sendId(imageId) {
     let xhr = new XMLHttpRequest();
     let url = 'movie/';
     
@@ -123,7 +81,7 @@ function sendTime(imageId, elapsedTime) {
     xhr.send(JSON.stringify(data));
   }
   
-  function getCookie(name) {
+function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
       const cookies = document.cookie.split(';');

@@ -16,7 +16,6 @@ time_page = {}
 searched = []
 agent = 0
 last_recommend = []
-users = []
 
 def json_to_ratings():
     global ratings
@@ -74,10 +73,10 @@ def search(request):
             result[m] = movies[m]
 
     context = { 'search': result.items() }
-    return render(request, 'index.html', context)    
+    return render(request, 'search.html', context)    
 
 def create_agent(data):
-    global agent, last_recommend, users
+    global agent, last_recommend
     
     while len(genome) == 0: sleep(1)
 
@@ -85,46 +84,22 @@ def create_agent(data):
 
     while len(last_recommend) == 0: sleep(1)
 
-    for i in range(4):
-        mov = take_movies(agent.perceive(last_recommend, genome, movies, users), movies)
-        for m in mov:
-            print(mov[m]['name'])
-        last_recommend, users = recommend(agent.val, ratings)
-
-    for e in agent.likes:
-        print(e['name'])
-        print("----------------------------------------------------------------------------")
-    print()
-
-    for e in agent.dislikes:
-        print(e['name'])
-        print("----------------------------------------------------------------------------")
-    print()
-
-    for e in agent.believes.likes:
-        print(e[0])
-    print()
-
-    for e in agent.believes.dislikes:
-        print(e[0])
-    print()
-
-    for e in agent.believes.text:
-        print(e)
-    print()
+    agent.perceive(last_recommend, genome, movies)
           
 def recomm(request):
-    global agent, last_recommend, users
+    global agent, last_recommend
     data = request.POST.get('data')
+    comments = request.POST.get('comments')
     data = json_to_data(data)
+    comments = json_to_data(comments)
 
-    agent_maker = Thread(target=create_agent, args=(data,))
-    agent_maker.start()
+    #agent_maker = Thread(target=create_agent, args=(data,))
+    #agent_maker.start()
 
-    last_recommend, users = recommend(data, ratings)
+    last_recommend = recommend(data, ratings)
     rec = take_movies(last_recommend, movies)
     context = { 'recommended': rec.items() }
-    return render(request, 'index.html', context)  
+    return render(request, 'recommended.html', context)  
 
 def movie(request):
     data = json.loads(request.body)

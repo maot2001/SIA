@@ -1,9 +1,13 @@
 {% extends './layouts/base.html' %}
 {% load static %}
 
+{% block header %}
+    <a href="{% url 'start' %}">Home</a>
+{% endblock header %}
+
 {% block content %}
-    <div class="pictures position-relative">
-        {% for key, value in init %}
+    <div class="pictures">
+        {% for key, value in search %}
         <div style="text-align: center;">
             <img id="{{ key }}" data-name="{{ value.name }}" data-description="{{ value.description }}" src="{{ value.poster }}" alt="{{ value.name }}" class="image relative tooltip-custom" data-toggle="tooltip">
 
@@ -21,10 +25,10 @@
         {% endfor %}
     </div>
     <form action="{% url 'recomm' %}" method="post">
-            {% csrf_token %}
-            <input type="hidden" id="resultArray" value="" name="data">
-            <input type="hidden" id="comments" value="" name="comments">
-            <button style="margin-left: 46.5%; margin-top: 5%;" id="submitBtn" type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Enviar</button>
+        {% csrf_token %}
+        <input type="hidden" id="resultArray" value="" name="data">
+        <input type="hidden" id="comments" value="" name="comments">
+        <button style="margin-left: 46.5%; margin-top: 5%;" id="submitBtn" type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Enviar</button>
     </form>
 {% endblock content %}
 

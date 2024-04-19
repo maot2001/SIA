@@ -22,7 +22,6 @@ def json_to_data(data):
     content = json.loads(data)
 
     movies = {}
-
     for mov in content:
         movies[int(mov)] = content[mov]
    

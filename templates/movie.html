@@ -1,19 +1,11 @@
+{% extends './layouts/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ data.name }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{% static 'style.css' %}" >
-</head>
-<body class="bg-white text-black">
 
-    <header class="bg-blue-500 p-4">
-        <h1 class="text-white text-center text-2xl font-bold">{{ data.name }}</h1>
-    </header>
+{% block header %}
+    <a href="{% url 'start' %}">Home</a>
+{% endblock header %}
 
+{% block content %}
     <main class="container mx-auto p-8">
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -21,6 +13,8 @@
                 <img src="{{ data.poster }}" alt="{{ data.name }}" class="w-full h-auto rounded-lg"> 
             </div>
             <div class="info">
+
+                <h1 class="font-bold mb-4" style="font-size: 3vw;">{{ data.name }}</h1>
 
                 <div>
                     {% for g in data.genre %}
@@ -76,7 +70,7 @@
                             {% endfor %}
                         </ul>
                     </div>
-    
+
                     <div>
                         <h3 class="text-lg font-bold mt-4 mb-2">Creators</h3>
                         <ul>
@@ -89,7 +83,7 @@
 
                 {% if data.review.reviewBody %}
                     <div>
-                        <h2 class="text-xl font-bold mb-4">Comments</h2>
+                        <h2 class="text-xl font-bold mb-4">Comment</h2>
                         <p>
                             {{ data.review.reviewBody }}
                         </p>
@@ -99,8 +93,8 @@
         </div>
 
         </main>
+{% endblock content %}
 
-    <script src="{% static 'time_page.js' %}"></script>
-
-</body>
-</html>
+{% block scripts%}
+    <script src="{% static 'js/time_page.js' %}"></script>
+{% endblock scripts%}
