@@ -38,6 +38,11 @@ class Fuzz:
 
         return (description,actor,director,like)
     
+# The rules in the _define_rules method establish relationships between movie features (description, actors, directors)
+# and user preference (represented by terms like "poor", "average", "good", "lot", "medium", "decent", "little").
+# These rules aim to associate specific combinations of quality in description, actors, and directors with user preference levels,
+# thereby helping the system to evaluate and recommend movies more accurately based on user preferences.
+
     def _define_rules(self):
 
         rule1 = ctrl.Rule(self.description['poor'] & self.actor['poor'] & self.director['poor'], self.like['poor'])
@@ -71,6 +76,18 @@ class Fuzz:
         return [rule1, rule2, rule3, rule4, rule5,rule7,rule8,rule9,rule10,rule11,rule12]
     
     def calc(self,description_value,actor_value,director_value, view=False):
+        """
+        Calculates the preference value based on description, actor, and director values using a control system.
+
+        Args:
+        - description_value (int): The preference value for the movie description (between 0 and 10).
+        - actor_value (int): The preference value for the movie actor (between 0 and 10).
+        - director_value (int): The preference value for the movie director (between 0 and 10).
+        - view (bool): Whether to display the control system view and the calculated preference value (default is False).
+
+        Returns:
+        - float: The calculated preference value based on the control system.
+        """
         like_ctrl = ctrl.ControlSystem(self.rules)
         liked = ctrl.ControlSystemSimulation(like_ctrl)
         liked.inputs({'description':description_value,'actor':actor_value,'director':director_value})

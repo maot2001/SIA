@@ -12,6 +12,13 @@ model=genai.GenerativeModel('gemini-pro')
 
 class DifusseBelief(Belief):
     def __init__(self, likes, dislikes):
+        """
+        Initializes a DifusseBelief object with likes and dislikes lists.
+
+        Args:
+        - likes (list): A list of liked movies with descriptions, actors, and directors.
+        - dislikes (list): A list of disliked movies with descriptions, actors, and directors.
+        """
         self.likes=likes
         self.dislikes=dislikes
         self.liked_descrip=self._extract_(likes,'description')
@@ -21,6 +28,16 @@ class DifusseBelief(Belief):
         self.chat_actors=self._actors()
     
     def _extract_(self,movies,wich_extract:str):
+        """
+        Extracts information (like actors, directors, or descriptions) from a list of movies.
+
+        Args:
+        - movies (list): A list of movies containing information to extract.
+        - which_extract (str): Specifies what type of information to extract ('actor', 'director', or 'description').
+
+        Returns:
+        - list: A list of extracted information based on the specified type.
+        """
         extract=[]
         for movie in movies:
             for m in movie:
@@ -35,7 +52,10 @@ class DifusseBelief(Belief):
                         extract.append(m[wich_extract])
                     else: continue
         return extract
+    
 
+    # This method attempts to send a message to a chat object and handles potential connection errors by retrying up to 10 times.
+    # It returns the response from the chat if successful, or a ConnectionError if the maximum retry limit is reached.
     def _send_(self,chat,text):
         not_connect=True
         count=0
@@ -51,7 +71,9 @@ class DifusseBelief(Belief):
                     break
         return (response if response is not None else ConnectionError)
 
-
+    # This method starts a conversation with the chat model to gather information about directors, descriptions, or actors,
+    # depending on the called function. It prompts the user to respond to each provided item and then prints the model's response.
+    # It returns the chat object for further use.
     def _directors(self):
         chat=model.start_chat(history=[])
         text='I am going to send you several directors in the following format:\n'
@@ -86,7 +108,12 @@ class DifusseBelief(Belief):
         text+='new_actor: [new actor]'
         response=self._send_(chat,text)
         print(response.text)
+
     
+    # This method calculates the user's affinity for a given description, actor, or director using the chat model.
+    # It displays descriptions, actors, or directors that the user has liked previously, along with the new item to evaluate.
+    # It prompts the user to respond with a number between 0 and 10 to indicate their affinity with the new item.
+    # Returns the affinity value as an integer.
     def calc_descrip(self,description,movies:dict):
         print('='*100)
         chat=self.chat_descrip
@@ -148,9 +175,20 @@ class DifusseBelief(Belief):
         return value
 
 
-
+# The DifusseAgent class represents an agent that recommends and evaluates movies based on user preferences.
+# It initializes with user likes, genome information, and movie data, and can perceive recommendations to take actions.
+# The perceive method evaluates recommended movies using fuzzy logic and updates the agent's beliefs accordingly.
+# The action method processes the evaluation results and updates the agent's liked descriptions, actors, and directors based on like values.
 class DifusseAgent:
     def __init__(self, liked: dict, genome: dict, movies: dict):
+        """
+        Initializes a DifusseAgent object with user likes, genome information, and movie data.
+
+        Args:
+        - liked (dict): A dictionary representing user likes for movies.
+        - genome (dict): A dictionary representing genome information.
+        - movies (dict): A dictionary containing movie information.
+        """
         self.val = liked
         self.likes = [[movies[m] for m in liked if liked[m] == 1]]
         self.dislikes = [[movies[m] for m in liked if liked[m] == 0]]
@@ -180,7 +218,7 @@ class DifusseAgent:
             if director is not None:
                 director_value=self.believes.calc_director(director,movies)
 
-            like_value=self.inference.calc(5,7,10)
+            like_value=self.inference.calc(descrip_value,actor_value,director_value)
             self.action(like_value,actors,descrip,director)
 
     def action(self,like_value,actors,descrip,direct):
