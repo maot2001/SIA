@@ -32,8 +32,6 @@ def json_to_ratings():
         for val in content[rat]['ratings']:
             ratings[key][int(val)] = content[rat]['ratings'][val]
         ratings[key]['name'] = content[rat]['name']
-
-    return ratings
    
 def json_to_genome():
     global genome
@@ -47,8 +45,6 @@ def json_to_genome():
     for gen in content:
         genome[int(gen)] = content[gen]
     
-    return genome
-   
 def start(request):
     global movies
     movies = json_to_movies()
