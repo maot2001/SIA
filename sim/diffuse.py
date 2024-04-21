@@ -67,9 +67,23 @@ class DifusseBelief(Belief):
                 count+=1
                 print(str(count)+'\n')
                 if count==10:
-                    print(ConnectionError())
+                    print("LImit of message")
                     break
         return (response if response is not None else ConnectionError)
+    
+    def _parse_(self,response,chat,text):
+        parse=False
+
+        while not parse:
+            try:
+                escaped=re.escape('[]')
+                splited=re.split(f'[{escaped}]',response.text)
+                value=int(splited[1] if len(splited[1])==1 else splited[1][0])  
+                parse=True
+            except:
+                response=self._send_(chat,text)
+        
+        return value
 
     # This method starts a conversation with the chat model to gather information about directors, descriptions, or actors,
     # depending on the called function. It prompts the user to respond to each provided item and then prints the model's response.
@@ -129,9 +143,7 @@ class DifusseBelief(Belief):
 
         print('='*100)
         print(response.text)
-        escaped=re.escape('[]')
-        splited=re.split(f'[{escaped}]',response.text)
-        value=int(splited[1] if len(splited[1])==1 else splited[1][0])  
+        value = self._parse_(response,chat,text) 
         return value
     
     def calc_actor(self,actor,movies:dict):
@@ -149,9 +161,8 @@ class DifusseBelief(Belief):
 
         print('='*100)
         print(response.text)
-        escaped=re.escape('[]')
-        splited=re.split(f'[{escaped}]',response.text)
-        value=int(splited[1] if len(splited[1])==1 else splited[1][0])  
+        value = self._parse_(response,chat,text) 
+
         return value
     
     def calc_director(self,director,movies:dict):
@@ -169,9 +180,8 @@ class DifusseBelief(Belief):
 
         print('='*100)
         print(response.text)
-        escaped=re.escape('[]')
-        splited=re.split(f'[{escaped}]',response.text)
-        value=int(splited[1] if len(splited[1])==1 else splited[1][0])  
+        value = self._parse_(response,chat,text) 
+ 
         return value
 
 
@@ -195,7 +205,7 @@ class DifusseAgent:
         self.believes = DifusseBelief(self.likes, self.dislikes)
         self.actor_dict={}
         self.director_dict={}
-        self.recommended = []
+        self.recommended_like = []
         self.inference=Fuzz()
 
     def perceive(self, recomended, movies):
@@ -219,12 +229,16 @@ class DifusseAgent:
                 director_value=self.believes.calc_director(director,movies)
 
             like_value=self.inference.calc(descrip_value,actor_value,director_value)
-            self.action(like_value,actors,descrip,director)
+            self.action(like_value,actors,descrip,director,rec)
 
-    def action(self,like_value,actors,descrip,direct):
+    def action(self,like_value,actors,descrip,direct,movie):
 
         if like_value >= 9 and like_value < 12:
-            self.believes.liked_descrip.append(descrip)
+            
+            if like_value >= 11:
+                self.recommended_like.append(movie)
+            if descrip is not None:
+                self.believes.liked_descrip.append(descrip)
             for act in actors:
                 try:
                     self.actor_dict[act['name']]+=1
@@ -240,10 +254,12 @@ class DifusseAgent:
                 self.director_dict[direct['name']]=0
 
         if like_value >= 12:
-            self.believes.liked_descrip.append(descrip)
+            if descrip is not None:
+                self.believes.liked_descrip.append(descrip)
             for act in actors:
                 self.believes.liked_actor.append(act['name'])
             self.believes.liked_director.append(direct['name'])
+            self.recommended_like.append(movie)
 
 
 
