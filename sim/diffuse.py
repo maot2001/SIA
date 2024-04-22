@@ -1,7 +1,7 @@
-from agents import Belief
+from .vect_agent import Belief
 import google.generativeai as genai
 import re
-from fuzz import Fuzz
+from .fuzz import Fuzz
 from numpy import average
 
 with open('sim\\key.txt','r') as file:

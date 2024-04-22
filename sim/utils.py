@@ -27,7 +27,7 @@ def json_to_data(data):
    
     return movies
 
-def first_10(movies):
+def first_30(movies):
     n = 30
     init = {}
     to_choice = list(movies.keys())
@@ -50,18 +50,3 @@ def take_movies(recommended, movies):
     for i in recommended:
         mov[i] = movies[i]
     return mov
-
-def cort(response, sep):
-    if not sep in response: return None
-    init = response.find(sep)
-    end = response[init + len(sep):].find(sep[::-1])
-    result = []
-    aux = 0
-
-    while init >= 0:
-        result.append(response[aux + init + len(sep) :aux + init + len(sep) + end])
-        aux += init + 2 * len(sep) + end
-        init = response[aux:].find(sep)
-        end = response[aux + init + len(sep):].find(sep[::-1])
-
-    return result

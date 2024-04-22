@@ -4,15 +4,16 @@ from scipy.spatial.distance import cosine
 
 class Com_Agent:
     def __init__(self, comments: dict, movies: dict):
-        self.sia = SentimentIntensityAnalyzer()
+        sia = SentimentIntensityAnalyzer()
         self.desc, self.kw, self.rev, self.beliefs = {}, {}, {}, {}
         for c in comments:
             if movies[c]['description']: self.desc[c] = movies[c]['description']
             if movies[c]['keywords']: self.kw[c] = movies[c]['keywords']
             if movies[c]['review']['reviewBody']: self.rev[c] = movies[c]['review']['reviewBody']
-            self.beliefs[c] = self.sia.polarity_scores(comments[c])['compound']
+            self.beliefs[c] = sia.polarity_scores(comments[c])['compound']
 
     def perceive(self, recommend: list, movies: dict):
+        if len(self.beliefs) == 0: return None
         model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
         prob = []
         

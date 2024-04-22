@@ -10,7 +10,6 @@ def jaccard_distance(movies: dict, ratings: dict):
         intersection, union = 0, 0
         index1, index2 = 0, 0
         rat_index = list(ratings[r].keys())
-        rat_index.remove('name')
 
         while index1 < len(mov_index) and index2 < len(rat_index):
             if mov_index[index1] < rat_index[index2]: index1 += 1
@@ -45,7 +44,6 @@ def jaccard_recommend(movies: dict, ratings: dict):
                 threshold -= .01
 
         rat_index = list(ratings[j[0]].keys())
-        rat_index.remove('name')
         rat_good = []
         for r in rat_index:
             if ratings[j[0]][r]: rat_good.append(r)
@@ -70,7 +68,6 @@ def recommend(movies: dict, ratings: dict):
 
     for i in ratings:
         for j in ratings[i]:
-            if j == 'name': continue
             if i > len(ratings): break
             if j in ids_movies:
                 index = ids_movies.index(j)

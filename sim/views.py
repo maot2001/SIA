@@ -3,8 +3,8 @@ import json
 from threading import Thread
 from django.shortcuts import render
 from django.http import JsonResponse
-from .utils import json_to_movies, first_10, json_to_data, take_movies
-from .agents import Agent
+from .utils import json_to_movies, first_30, json_to_data, take_movies
+from .cent_agent import Cent_Agent
 from time import sleep, time
 from .recommend import recommend
 
@@ -26,12 +26,15 @@ def json_to_ratings():
     with open(route, 'r', encoding='utf-8') as json_file:
         content = json.load(json_file)
 
+    temp = {}
     for rat in content:
         key = int(rat)
-        ratings[key] = {}
-        for val in content[rat]['ratings']:
-            ratings[key][int(val)] = content[rat]['ratings'][val]
-        ratings[key]['name'] = content[rat]['name']
+        temp[key] = {}
+        for val in content[rat]:
+            temp[key][int(val)] = content[rat][val]
+
+    ratings = temp
+    print('ratings loaded')
    
 def json_to_genome():
     global genome
@@ -42,19 +45,23 @@ def json_to_genome():
     with open(route, 'r', encoding='utf-8') as json_file:
         content = json.load(json_file)
 
+    temp = {}
     for gen in content:
-        genome[int(gen)] = content[gen]
+        temp[int(gen)] = content[gen]
+
+    genome = temp
+    print('genome loaded')
     
 def start(request):
     global movies
-    movies = json_to_movies()
 
     thread1 = Thread(target=json_to_ratings)
     thread2 = Thread(target=json_to_genome)
     thread1.start()
     thread2.start()
+    movies = json_to_movies()
 
-    init = first_10(movies)
+    init = first_30(movies)
     context = { 'init': init.items() }
     return render(request, 'index.html', context)
 
@@ -71,16 +78,16 @@ def search(request):
     context = { 'search': result.items() }
     return render(request, 'search.html', context)    
 
-def create_agent(data):
+def create_agent(data, comments):
     global agent, last_recommend
     
-    while len(genome) == 0: sleep(1)
+    while len(genome) == 0 or len(ratings) == 0: sleep(1)
 
-    agent = Agent(data, genome, movies)
+    agent = Cent_Agent(data, comments, movies, genome)
 
     while len(last_recommend) == 0: sleep(1)
 
-    agent.perceive(last_recommend, genome, movies)
+    agent.perceive(last_recommend, movies, genome)
           
 def recomm(request):
     global agent, last_recommend
@@ -89,8 +96,10 @@ def recomm(request):
     data = json_to_data(data)
     comments = json_to_data(comments)
 
-    #agent_maker = Thread(target=create_agent, args=(data,))
-    #agent_maker.start()
+    agent_maker = Thread(target=create_agent, args=(data, comments))
+    agent_maker.start()
+
+    while len(ratings) == 0: sleep(1)
 
     last_recommend = recommend(data, ratings)
     rec = take_movies(last_recommend, movies)
