@@ -6,6 +6,8 @@ Kevin Majim Ortega Alvarez ---------- C-412\
 Lidier Robaina ---------------------- C-412
 ## Link to report
 
+https://github.com/maot2001/SIA/blob/main/Informe.pdf
+
 ## Requirements
 To run this project is necessary:
 
