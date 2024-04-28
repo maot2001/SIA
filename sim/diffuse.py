@@ -2,7 +2,6 @@ from .vect_agent import Belief
 import google.generativeai as genai
 import re
 from .fuzz import Fuzz
-from numpy import average
 
 with open('sim\\key.txt','r') as file:
     GOOGLE_API_KEY=file.read()
@@ -63,8 +62,9 @@ class DifusseBelief(Belief):
             try:
                 response=chat.send_message(text)
                 not_connect=False
-            except:
+            except Exception as e:
                 count+=1
+                print(e.message)
                 print(str(count)+'\n')
                 if count==10:
                     print("LImit of message")
@@ -76,10 +76,23 @@ class DifusseBelief(Belief):
 
         while not parse:
             try:
-                escaped=re.escape('[]')
-                splited=re.split(f'[{escaped}]',response.text)
-                value=int(splited[1] if len(splited[1])==1 else splited[1][0])  
-                parse=True
+                try:
+                    value = int(response.text)
+                    parse = True
+                except:
+                    try:
+                        escaped=re.escape('**')
+                        splited=re.split(f'[{escaped}]',response.text)
+                        value=int(splited[2])  
+                        parse=True
+                    except:
+                        escaped=re.escape('[]')
+                        splited=re.split(f'[{escaped}]',response.text)
+                        if len(splited[1]) > 2:
+                            escaped = re.escape('/')
+                            splited=re.split(f'[{escaped}]',splited[1])
+                        value=int(splited[1] if len(splited)>2 else splited[0])  
+                        parse=True
             except:
                 response=self._send_(chat,text)
         
@@ -94,8 +107,8 @@ class DifusseBelief(Belief):
         text+='director: [director1]\n'
         text+='director: [director2]\n ...\n'
         text+='and I need you to respond:'
-        text+='How much could I like the \"new_director\" given that you liked the previous ones?\n'
-        text+='new_director: [new director]'
+        text+='How much could I like the \"new_directors\" given that you liked the previous ones?\n'
+        text+='new_directors: [new_director1, new_director2, ... ]'
         response=self._send_(chat,text)
         print(response.text)
         return chat
@@ -118,8 +131,8 @@ class DifusseBelief(Belief):
         text+='actor: [actor1]\n'
         text+='actor: [actor2]\n ...\n'
         text+='and I need you to respond:'
-        text+='How much could I like the \"new_actor\" given that you liked the previous ones?\n'
-        text+='new_actor: [new actor]'
+        text+='How much could I like the \"new_actors\" given that you liked the previous ones?\n'
+        text+='new_actors: [new_actor1, new_actor2, ...]'
         response=self._send_(chat,text)
         print(response.text)
 
@@ -153,9 +166,13 @@ class DifusseBelief(Belief):
         for m in self.liked_actor:
             text+='actor ['
             text+=m + ']\n'
-        text+='new_actor: [' + actor['name'] + ']\n'
+        text+='new_actors: [' 
+        for a in actor:
+            text += a['name'] + ', '
+        text = text[:len(text)-2]
+        text += ']\n'
         text+=' Only responses of a number between 0 and 10. the number between []'
-        print(text)
+        print('actor')
 
         response=self._send_(chat,text)
 
@@ -172,9 +189,13 @@ class DifusseBelief(Belief):
         for m in self.liked_director:
             text+='director ['
             text+=m + ']\n'
-        text+='new_director: [' + director['name'] + ']\n'
+        text+='new_directors: [' 
+        for d in director:
+            text += d['name'] + ', '
+        text = text[:len(text)-2]
+        text += ']\n'
         text+=' Only responses of a number between 0 and 10. the number between []'
-        print(text)
+        print('director')
 
         response=self._send_(chat,text)
 
@@ -190,7 +211,7 @@ class DifusseBelief(Belief):
 # The perceive method evaluates recommended movies using fuzzy logic and updates the agent's beliefs accordingly.
 # The action method processes the evaluation results and updates the agent's liked descriptions, actors, and directors based on like values.
 class DifusseAgent:
-    def __init__(self, liked: dict, genome: dict, movies: dict):
+    def __init__(self, liked: dict, movies: dict):
         """
         Initializes a DifusseAgent object with user likes, genome information, and movie data.
 
@@ -209,35 +230,36 @@ class DifusseAgent:
         self.inference=Fuzz()
 
     def perceive(self, recomended, movies):
-        actor_rate=[]
-        likes=[]
         for rec in recomended:
-            actors=[]
+            
             descrip=movies[rec]['description']
-            if descrip is not None:
+            if descrip:
                 descrip_value=self.believes.calc_descrip(descrip,movies)
+            else:
+                descrip_value=5
+
             actor=movies[rec]['actor']
-            if actor is not None:
-                for act in actor:
-                    actors.append(act)
-                    actor_rate.append(self.believes.calc_actor(act,movies))
-                actor_value=average(actor_rate)
+            if actor:
+                actor_value=self.believes.calc_actor(actor,movies)
+            else:
+                actor_value=5
 
             director=movies[rec]['director']
-            director=director[0]
-            if director is not None:
+            if director:
                 director_value=self.believes.calc_director(director,movies)
+            else:
+                director_value=5
 
             like_value=self.inference.calc(descrip_value,actor_value,director_value)
-            self.action(like_value,actors,descrip,director,rec)
+            self.action(like_value,rec)
 
-    def action(self,like_value,actors,descrip,direct,movie):
+    def action(self,like_value,movie):
 
         if like_value >= 9 and like_value < 12:
             
             if like_value >= 11:
                 self.recommended_like.append(movie)
-            if descrip is not None:
+            """if descrip is not None:
                 self.believes.liked_descrip.append(descrip)
             for act in actors:
                 try:
@@ -251,14 +273,14 @@ class DifusseAgent:
                 if self.director_dict[act['name']]==3:
                     self.believes.liked_director.append(direct['name'])
             except:
-                self.director_dict[direct['name']]=0
+                self.director_dict[direct['name']]=0"""
 
         if like_value >= 12:
-            if descrip is not None:
+            """if descrip is not None:
                 self.believes.liked_descrip.append(descrip)
             for act in actors:
                 self.believes.liked_actor.append(act['name'])
-            self.believes.liked_director.append(direct['name'])
+            self.believes.liked_director.append(direct['name'])"""
             self.recommended_like.append(movie)
 
 

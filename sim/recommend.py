@@ -29,19 +29,26 @@ def jaccard_recommend(movies: dict, ratings: dict):
     jac = jaccard_distance(movies, ratings)
     sug = []
     mov_index = list(movies.keys())
-    threshold = .1
+    threshold = .2
     
     for j in jac:
-        if j[1] <= threshold: 
-            if len(sug) > 50: break
+        end = False
+        while j[1] <= threshold:
+            if len(sug) > 50:
+                end = True
+                break
             elif threshold < .05:
-                if len(sug) > 20: break
+                if len(sug) > 20:
+                    end = True
+                    break
                 elif threshold == 0:
                     raise Exception("The information provided is insufficient")
                 else:
                     threshold -= .01
             else:
                 threshold -= .01
+
+        if end: break
 
         rat_index = list(ratings[j[0]].keys())
         rat_good = []
@@ -77,8 +84,8 @@ def recommend(movies: dict, ratings: dict):
                     matrix[i - 1][index] = -1
 
     num_movies = 10
-    size_poblation = 1000
-    num_generations = 20
+    size_poblation = 100
+    num_generations = 5
     size_select = 5
     matrix_sparse = csr_matrix(matrix)
     als_model = AlternatingLeastSquares(factors=50, regularization=0.01)
